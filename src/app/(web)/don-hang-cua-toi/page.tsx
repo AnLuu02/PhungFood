@@ -1,0 +1,18 @@
+import { Metadata } from 'next';
+import { getServerSession } from 'next-auth';
+import { authOptions } from '~/server/auth/options';
+import { api, HydrateClient } from '~/trpc/server';
+import MyOrderPageClient from './pageClient';
+export const metadata: Metadata = {
+  title: 'Đơn hàng của tôi - Phụng Food',
+  description: 'Xem và quản lý các đơn hàng đã đặt tại Phụng Food.'
+};
+export default async function MyOrderPage() {
+  const session = await getServerSession(authOptions);
+  await api.Order.getFilter.prefetch({ s: session?.user?.email || '' });
+  return (
+    <HydrateClient>
+      <MyOrderPageClient session={session} />
+    </HydrateClient>
+  );
+}

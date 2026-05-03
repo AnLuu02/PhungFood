@@ -1,0 +1,128 @@
+'use client';
+
+import { Button, Card, Center, Divider, Grid, GridCol, Text, TextInput, Title } from '@mantine/core';
+import { useDisclosure } from '@mantine/hooks';
+import { TokenType } from '@prisma/client';
+import { IconMail } from '@tabler/icons-react';
+import { useSession } from 'next-auth/react';
+import { useSearchParams } from 'next/navigation';
+import { useEffect, useState } from 'react';
+import OtpModal from '~/components/Modals/ModalOtp';
+import { NotifyError } from '~/lib/FuncHandler/toast';
+import { api } from '~/trpc/react';
+import PeriodControl from '../../components/PeriodControl';
+
+const TIME_EXPIRED_MINUTES = 3;
+
+export default function ForgotPassword() {
+  const { data: user } = useSession();
+  const searchParams = useSearchParams();
+  const [email, setEmail] = useState('');
+  const [loading, setLoading] = useState(false);
+  const [opened, { open, close }] = useDisclosure();
+
+  useEffect(() => {
+    const email = user?.user.email || searchParams.get('email');
+    if (email) {
+      setEmail(email);
+    }
+  }, [user]);
+
+  const requestPasswordReset = api.User.verifyEmail.useMutation({
+    onSuccess: () => {
+      setLoading(false);
+      open();
+    },
+    onError: error => {
+      setLoading(false);
+      NotifyError(error.message);
+    }
+  });
+  const verifyUser = api.User.updateCustom.useMutation({
+    onError: e => {
+      NotifyError(e.message);
+    }
+  });
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    setLoading(true);
+    requestPasswordReset.mutate({ email, timeExpiredMinutes: TIME_EXPIRED_MINUTES, type: TokenType.PASSWORD_RESET });
+  };
+
+  return (
+    <>
+      <form onSubmit={handleSubmit}>
+        <Center my={'md'}>
+          <Card
+            w={{ base: '100%', sm: '50vw', md: '40vw', lg: '27vw' }}
+            h={'max-content'}
+            py={'xs'}
+            pt={'xl'}
+            shadow='xl'
+            withBorder
+          >
+            <Card.Section p={'md'}>
+              <Grid>
+                <GridCol span={12} className='flex justify-center'>
+                  <Title className='font-quicksand' order={3}>
+                    Nhập địa chỉ email của bạn
+                  </Title>
+                </GridCol>
+                <GridCol span={12} className='flex justify-center'>
+                  <PeriodControl period={'email'} />
+                </GridCol>
+                <GridCol span={12}>
+                  <Text size='sm' className='text-center' mb={1}>
+                    Chúng tôi sẽ gửi mã xác nhận đến địa chỉ email này.
+                  </Text>
+                  <TextInput
+                    type='email'
+                    value={email}
+                    onChange={e => setEmail(e.target.value)}
+                    required
+                    placeholder='E-mail'
+                    leftSection={<IconMail size={18} stroke={1.5} />}
+                  />
+                </GridCol>
+                <GridCol span={12}>
+                  <Text size='sm' c={'dimmed'}>
+                    Chúng tôi sẽ dùng email này để gửi thông tin cập nhật về quy trình xem xét và cho bạn biết kết quả.
+                  </Text>
+                </GridCol>
+                <GridCol span={12}>
+                  <Divider />
+                </GridCol>
+                <GridCol span={12}>
+                  <Button disabled={!email} loading={loading} type='submit' fullWidth size='md' children={'Gửi mã'} />
+                </GridCol>
+              </Grid>
+            </Card.Section>
+          </Card>
+        </Center>
+      </form>
+      <OtpModal
+        opened={opened}
+        onClose={close}
+        email={email}
+        timeExpiredMinutes={TIME_EXPIRED_MINUTES}
+        onAfterVerify={async (token, user) => {
+          if (!user?.isVerified) {
+            const resp = await verifyUser.mutateAsync({
+              where: {
+                id: user?.id
+              },
+              data: {
+                isVerified: true
+              }
+            });
+            if (resp) {
+              window.location.href = `/dang-nhap?email=${resp.email}&status=verify-success`;
+            }
+          } else {
+            window.location.href = `/reset-password?email=${encodeURIComponent(email)}&token=${token}`;
+          }
+        }}
+      />
+    </>
+  );
+}

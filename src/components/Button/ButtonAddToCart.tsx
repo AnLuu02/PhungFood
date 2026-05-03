@@ -1,0 +1,45 @@
+'use client';
+
+import { Button, ButtonProps } from '@mantine/core';
+import { useLocalStorage } from '@mantine/hooks';
+import { flyToCart, getVisibleToEl } from '~/lib/ButtonHandler/FlyToCart';
+
+export function ButtonAddToCart({
+  product,
+  style,
+  handleAfterAdd,
+  notify
+}: {
+  product: any;
+  style: ButtonProps;
+  handleAfterAdd: () => void;
+  notify: (title?: string, message?: string) => void;
+}) {
+  const [cart, setCart] = useLocalStorage<any[]>({ key: 'cart', defaultValue: [] });
+
+  return (
+    <Button
+      radius={'xl'}
+      size={'xs'}
+      onClick={() => {
+        const to = getVisibleToEl('.cart-btn');
+        const from = document.getElementById(`productImage-${product?.id}`);
+        if (from && to) flyToCart({ fromEl: from, toEl: to, imageUrl: from?.getAttribute('src') || '' });
+
+        const existingItem = cart.find((item: any) => item.id === product?.id);
+        if (existingItem) {
+          setCart(
+            cart.map((item: any) =>
+              item.id === product?.id ? { ...item, quantity: product.quantity + existingItem.quantity } : item
+            )
+          );
+        } else {
+          setCart([...cart, { ...product, quantity: product.quantity }]);
+        }
+        notify('Đã thêm vào giỏ hàng', 'Sản phẩm đã có trong giỏ hàng. Thanh toán ngay!');
+        handleAfterAdd();
+      }}
+      {...style}
+    />
+  );
+}

@@ -1,0 +1,54 @@
+import { activityRouter } from './routers/Activity';
+import { categoryRouter } from './routers/Category';
+import { contactRouter } from './routers/Contact';
+import { deliveryRouter } from './routers/Delivery';
+import { favouriteFoodRouter } from './routers/FavouriteFood';
+import { imagesRouter } from './routers/Images';
+import { invoiceRouter } from './routers/Invoice';
+import { materialRouter } from './routers/Material';
+import { newsRouter } from './routers/news';
+import { notificationRouter } from './routers/Notification';
+import { notificationTemplateRouter } from './routers/NotificationTemplate';
+import { orderRouter } from './routers/Order';
+import { pageRouter } from './routers/Page';
+import { paymentRouter } from './routers/Payment';
+import { productRouter } from './routers/Product';
+import { restaurantRouter } from './routers/Restaurant';
+import { revenueRouter } from './routers/Revenue';
+import { reviewRouter } from './routers/Review';
+import { rolePermissionRouter } from './routers/RolePermission';
+import { searchRouter } from './routers/Search';
+import { subCategoryRouter } from './routers/SubCategory';
+import { userRouter } from './routers/User';
+import { voucherRouter } from './routers/Voucher';
+import { createCallerFactory, createTRPCRouter } from './trpc';
+
+export const appRouter = createTRPCRouter({
+  Page: pageRouter,
+  Invoice: invoiceRouter,
+  Search: searchRouter,
+  Category: categoryRouter,
+  SubCategory: subCategoryRouter,
+  Delivery: deliveryRouter,
+  User: userRouter,
+  Payment: paymentRouter,
+  Product: productRouter,
+  Review: reviewRouter,
+  Contact: contactRouter,
+  Order: orderRouter,
+  Revenue: revenueRouter,
+  FavouriteFood: favouriteFoodRouter,
+  Voucher: voucherRouter,
+  News: newsRouter,
+  Material: materialRouter,
+  RolePermission: rolePermissionRouter,
+  Restaurant: restaurantRouter,
+  Notification: notificationRouter,
+  NotificationTemplate: notificationTemplateRouter,
+  Images: imagesRouter,
+  Activity: activityRouter
+});
+
+export type AppRouter = typeof appRouter;
+
+export const createCaller = createCallerFactory(appRouter);

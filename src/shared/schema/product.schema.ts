@@ -1,0 +1,71 @@
+import z from 'zod';
+import { createTag } from '~/lib/FuncHandler/generateTag';
+import { imageInfoFromDbSchema, imageInfoInputSchema } from './image.info.schema';
+
+export const getServiceOptionsSchema = z.object({
+  s: z.string().optional(),
+  hasCategory: z.boolean().default(false).optional(),
+  hasCategoryChild: z.boolean().default(false).optional(),
+  hasReview: z.boolean().default(false).optional(),
+  userRole: z.string().optional()
+});
+
+export const baseProductSchema = z.object({
+  id: z.string().optional(),
+  name: z.string({ required_error: 'Tên sản phẩm là bắt buộc' }).min(1, 'Tên sản phẩm không được để trống'),
+  description: z.string().optional(),
+  descriptionDetailJson: z.any().optional().nullable(),
+  descriptionDetailHtml: z.string().default('<p>Đang cập nhật</p>'),
+  region: z.string({ required_error: 'Món ăn này là của miền nào đây?' }).min(1, 'Món ăn này là của miền nào đây?'),
+  tag: z.string().optional(),
+  tags: z.array(z.string()),
+  isActive: z.boolean().default(true),
+  price: z
+    .number({ required_error: 'Giá trị phải lớn hơn hoặc bằng 10.000' })
+    .min(10000, 'Giá trị phải lớn hơn hoặc bằng 10.000')
+    .default(10000),
+  discount: z
+    .number({ required_error: 'Giá trị khuyên mái phải lớn hơn hoặc bằng 0' })
+    .min(0, 'Giá trị không được nhỏ hơn 0')
+    .optional()
+    .default(0),
+  subCategoryId: z.string({ required_error: 'Hãy chọn danh mục sản phẩm' }).min(1, 'Hãy chọn danh mục sản phẩm'),
+  rating: z.number().optional(),
+  totalRating: z.number().optional(),
+  soldQuantity: z.coerce.number().min(0, 'Số lượng đã bán không được âm'),
+  availableQuantity: z.coerce.number().min(0, 'Số lượng khả dụng không được âm'),
+  materials: z.array(z.string()).optional()
+});
+
+export const productInputSchema = baseProductSchema
+  .extend({
+    thumbnail: imageInfoInputSchema.optional(),
+    gallery: z.array(imageInfoInputSchema).optional(),
+    galleryInput: z.array(z.instanceof(File)).optional()
+  })
+  .transform(data => ({
+    ...data,
+    tag: createTag('Sản phẩm ' + data?.name)
+  }))
+  .refine(data => data.discount < data.price, {
+    message: 'Giảm giá không được vượt quá 80% giá trị sản phẩm.',
+    path: ['discount']
+  });
+
+export const productFromDbSchema = baseProductSchema
+  .extend({
+    imageForEntities: z.array(imageInfoFromDbSchema).optional()
+  })
+  .transform(data => ({
+    ...data,
+    tag: createTag('Sản phẩm ' + data?.name)
+  }))
+  .refine(data => data.discount < data.price, {
+    message: 'Giảm giá không được vượt quá 80% giá trị sản phẩm.',
+    path: ['discount']
+  });
+
+export type ProductInput = z.infer<typeof productInputSchema>;
+export type ProductFromDb = z.infer<typeof productFromDbSchema>;
+
+export type ServiceOptions = z.infer<typeof getServiceOptionsSchema>;
