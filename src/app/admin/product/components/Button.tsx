@@ -3,7 +3,7 @@
 import { ActionIcon, Button, Modal, ScrollAreaAutosize, Title } from '@mantine/core';
 import { IconEdit, IconPlus, IconTrash } from '@tabler/icons-react';
 import { useState } from 'react';
-import { confirmDelete } from '~/lib/ButtonHandler/ButtonDeleteConfirm';
+import { onHandleModalAction } from '~/lib/ButtonHandler/ButtonHandleAction';
 import { api } from '~/trpc/react';
 import ProductUpsert from './form/ProductUpsert';
 
@@ -61,7 +61,11 @@ export function UpdateProductButton({ id }: { id: string }) {
 
 export function DeleteProductButton({ id }: { id: string }) {
   const utils = api.useUtils();
-  const mutationDelete = api.Product.delete.useMutation();
+  const mutationDelete = api.Product.delete.useMutation({
+    onSuccess: () => {
+      utils.Product.invalidate();
+    }
+  });
 
   return (
     <>
@@ -69,14 +73,15 @@ export function DeleteProductButton({ id }: { id: string }) {
         variant='subtle'
         color='red'
         onClick={() => {
-          confirmDelete({
-            id: { id },
-            mutationDelete,
-            entityName: 'sản phẩm',
-            callback: () => {
-              utils.Product.invalidate();
-            }
-          });
+          id &&
+            onHandleModalAction({
+              type: 'delete',
+              customProps: {
+                onConfirm: async () => {
+                  await mutationDelete.mutateAsync({ id });
+                }
+              }
+            });
         }}
       >
         <IconTrash size={24} />
