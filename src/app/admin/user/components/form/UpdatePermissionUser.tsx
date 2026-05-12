@@ -1,19 +1,20 @@
 'use client';
 import { Box, Button, Flex, Group, Paper, Text } from '@mantine/core';
-import { Dispatch, SetStateAction, useCallback, useEffect, useMemo, useState } from 'react';
+import { Dispatch, FormEvent, SetStateAction, useCallback, useEffect, useMemo, useState } from 'react';
 import FilterSection from '~/app/admin/role/components/Section/FilterSection';
 import PermissionSection from '~/app/admin/role/components/Section/PermissionSection';
 import { FilterPermission } from '~/app/admin/role/components/types';
 import { ModalUpsertSkeleton } from '~/components/ModelUpsertSkeleton';
 import { syncPermissions } from '~/lib/FuncHandler/SyncPermissions';
 import { NotifyError, NotifySuccess } from '~/lib/FuncHandler/toast';
+import { GetOneUser } from '~/shared/types-trpc/user.type-trpc';
 import { api } from '~/trpc/react';
 
 export default function UpdatePermissionUser({
   email,
   setOpened
 }: {
-  email: any;
+  email: string;
   setOpened: Dispatch<SetStateAction<boolean>>;
 }) {
   const { data: user, isLoading: isLoadingUser } = api.User.getOne.useQuery({ s: email }, { enabled: !!email });
@@ -21,7 +22,7 @@ export default function UpdatePermissionUser({
   const [searchValue, setSearchValue] = useState('');
   const [filter, setFilter] = useState<FilterPermission>();
   const [seletedPermissions, setSeletedPermissions] = useState<any>([]);
-  const [initPermissions, setInitPermissions] = useState<any>([]);
+  const [initPermissions, setInitPermissions] = useState<NonNullable<GetOneUser>['role']['permissions']>([]);
 
   useEffect(() => {
     const userPermission = user?.role?.permissions ?? [];
@@ -43,7 +44,7 @@ export default function UpdatePermissionUser({
       NotifyError(e.message);
     }
   });
-  const handleSubmit = async (e: any) => {
+  const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     try {
       setLoading(true);
@@ -67,10 +68,10 @@ export default function UpdatePermissionUser({
     }
   };
 
-  const handleFilter = useCallback((value: any) => {
+  const handleFilter = useCallback((value: FilterPermission) => {
     setFilter(value);
   }, []);
-  const handleSearch = useCallback((value: any) => {
+  const handleSearch = useCallback((value: string) => {
     setSearchValue(value);
   }, []);
   const handleSeletedPermission = useCallback((value: any) => {

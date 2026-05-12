@@ -26,25 +26,34 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { useMemo, useState } from 'react';
 import { UpdateUserButton } from '~/app/admin/user/components/Button';
+import { LoadingSkeleton } from '~/components/SectionWrapperSkeleton';
 import { getInfoLevelUser, infoUserLevel } from '~/constants';
 import { formatDateViVN } from '~/lib/FuncHandler/Format';
 import { getTotalOrderStatus, ORDER_STATUS_UI } from '~/lib/FuncHandler/status-order';
 import { promotionLevels } from '~/lib/HardData/promotion-level';
+import { GetOneUser } from '~/shared/types-trpc/user.type-trpc';
+import { api } from '~/trpc/react';
 
-export function UserInfo({ userInfor }: { userInfor: any }) {
+export function UserInfo({ userId }: { userId: string }) {
+  const { data: userInfor, isLoading } = api.User.getOne.useQuery({ s: userId || '', hasOrders: true });
   const [opened, setOpened] = useState(false);
-  const { statusObj }: any = useMemo(() => {
+  const { statusObj } = useMemo(() => {
     const orderData =
-      userInfor?.order?.map((order: any) => ({
-        id: order.id,
-        date: new Date(order.createdAt).toISOString().split('T')[0] || new Date('yyyy-mm-dd'),
-        finalTotal: order?.finalTotal || 0,
-        status: order.status
-      })) || [];
+      userInfor?.order?.map((order: NonNullable<GetOneUser>['order'][number]) => {
+        if (!order) return {};
+        return {
+          id: order.id,
+          date: order.createdAt ? new Date(order.createdAt).toISOString().split('T')[0] : new Date('yyyy-mm-dd'),
+          finalTotal: order?.finalTotal || 0,
+          status: order.status
+        };
+      }) || [];
     const statusObj = getTotalOrderStatus(orderData);
     return { statusObj };
   }, [userInfor]);
-  const levelInfo = getInfoLevelUser(userInfor?.level);
+  const levelInfo = userInfor?.level ? getInfoLevelUser(userInfor?.level) : {};
+
+  if (isLoading) return <LoadingSkeleton variant='page' />;
 
   return (
     <Grid p={0} grow>

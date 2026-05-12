@@ -2,8 +2,9 @@
 import { Accordion, Box, Button, Card, Paper, Text } from '@mantine/core';
 import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
+import type { GetAllCategory } from '~/shared/types-trpc/category.type-trpc';
 
-export const MenuCategoryFilter = ({ categories }: any) => {
+export const MenuCategoryFilter = ({ categories }: { categories: GetAllCategory }) => {
   const params = useSearchParams();
   return (
     <Card p={0} className='bg-gray-100 dark:bg-dark-card' mt={{ base: 'xs', md: 0 }} mb={20}>
@@ -25,7 +26,7 @@ export const MenuCategoryFilter = ({ categories }: any) => {
             Tất cả
           </Button>
         </Link>
-        {categories.map((category: any) => (
+        {categories.map((category: GetAllCategory[number]) => (
           <Accordion.Item key={category?.id} value={category?.tag}>
             <Accordion.Control
               className={`${

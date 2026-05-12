@@ -235,16 +235,10 @@ export const getFilterProductService = async (db: PrismaClient, input: ServiceOp
   return product;
 };
 export const getOneProductService = async (db: PrismaClient, input: ServiceOptions) => {
-  const { s, hasCategory, hasCategoryChild, hasReview, hasUser, userRole }: any = input;
-  return await db.product.findFirst({
+  const { s, hasCategory, hasCategoryChild, hasReview, hasUser, userRole } = input;
+  const rs = await db.product.findFirst({
     where: {
-      ...(userRole && userRole != UserRole.CUSTOMER
-        ? {}
-        : {
-            isActive: true
-          }),
-
-      OR: [{ id: { equals: s } }, { tag: { equals: s?.trim() } }]
+      tag: s
     },
     include: {
       imageForEntities: {
@@ -283,6 +277,7 @@ export const getOneProductService = async (db: PrismaClient, input: ServiceOptio
       favouriteFood: true
     }
   });
+  return rs;
 };
 export const getAllProductService = async (db: PrismaClient, input: ServiceOptions) => {
   const { hasCategory, hasCategoryChild, hasReview, userRole }: any = input;

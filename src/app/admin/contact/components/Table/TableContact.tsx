@@ -22,23 +22,26 @@ import CustomPagination from '~/components/Pagination';
 import PageSizeSelector from '~/components/Perpage';
 import { SearchInput } from '~/components/Search/SearchInput';
 import { formatDateViVN } from '~/lib/FuncHandler/Format';
+import { FindContact, GetAllContact } from '~/shared/types-trpc/contact.type-trpc';
 import { api } from '~/trpc/react';
 import { CallPhoneButton, DeleteContactButton, SendMailButton } from '../Button';
 
-export default function TableContact({ s, data, allData }: { s: string; data: any; allData: any }) {
+export default function TableContact() {
   const searchParams = useSearchParams();
   const params = new URLSearchParams(searchParams);
+  const s = params.get('s') || '';
+  const page = params.get('page') || '1';
+  const limit = params.get('limit') || '5';
   const router = useRouter();
-  const page = searchParams.get('page') || '1';
-  const limit = searchParams.get('limit') || '5';
-  const { data: dataClient } = api.Contact.find.useQuery({ skip: +page, take: +limit, s }, { initialData: data });
 
-  const { data: allDataClient } = api.Contact.getAll.useQuery(undefined, { initialData: allData });
+  const { data: dataClient } = api.Contact.find.useQuery({ skip: +page, take: +limit, s });
+  const { data: allDataClient } = api.Contact.getAll.useQuery();
+
   const currentItems = dataClient?.contacts || [];
   const dataFilter = useMemo(() => {
     if (!allDataClient) return [];
     const summary = allDataClient.reduce(
-      (acc: any, item: any) => {
+      (acc: Record<TypeContact, number>, item: GetAllContact[number]) => {
         if (item.type === TypeContact.COLLABORATION) acc[TypeContact.COLLABORATION] += 1;
         else if (item.type === TypeContact.FEEDBACK) acc[TypeContact.FEEDBACK] += 1;
         else if (item.type === TypeContact.SUPPORT) acc[TypeContact.SUPPORT] += 1;
@@ -149,7 +152,7 @@ export default function TableContact({ s, data, allData }: { s: string; data: an
 
           <Table.Tbody>
             {currentItems.length > 0 ? (
-              currentItems.map((row: any, index: number) => (
+              currentItems.map((row: FindContact['contacts'][number], index: number) => (
                 <Table.Tr key={index}>
                   <Table.Td className='text-sm'>
                     <Highlight size='sm' highlight={s}>
@@ -170,7 +173,7 @@ export default function TableContact({ s, data, allData }: { s: string; data: an
                   <Table.Td className='text-sm'>
                     <Group className='text-center'>
                       <SendMailButton userContactInfo={row} />
-                      <CallPhoneButton phone={row.phone} />
+                      <CallPhoneButton phone={row.phone || '0918064618'} />
                       <DeleteContactButton id={row.id} />
                     </Group>
                   </Table.Td>
@@ -191,7 +194,7 @@ export default function TableContact({ s, data, allData }: { s: string; data: an
 
       <Group justify='space-between' align='center' my={'md'}>
         <PageSizeSelector />
-        <CustomPagination totalPages={data?.pagination.totalPages || 1} />
+        <CustomPagination totalPages={dataClient?.pagination.totalPages || 1} />
       </Group>
     </>
   );
