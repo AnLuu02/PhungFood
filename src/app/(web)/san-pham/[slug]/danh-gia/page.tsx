@@ -11,9 +11,7 @@ import RatingStatistics from '../components/RatingStatistics';
 
 export default function ProductPage({ params }: { params: { slug: string } }) {
   const productTag = params.slug;
-
   const { data: product, isLoading } = api.Product.getOne.useQuery({ s: productTag, hasReview: true, hasUser: true });
-  console.log(productTag, product);
   if (!product)
     return (
       <Box py='md'>

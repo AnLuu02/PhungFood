@@ -15,8 +15,6 @@ export const CommentsList = ({ productId }: { productId: string }) => {
     ...(productId ? { relationId: productId } : {})
   });
   const reviews = data?.reviews || [];
-  console.log('reviewsreviewsreviewsreviews', reviews);
-
   const { data: user } = useSession();
   const utils = api.useUtils();
   const mutationDelete = api.Review.delete.useMutation({

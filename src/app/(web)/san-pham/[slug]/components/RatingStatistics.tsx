@@ -5,8 +5,6 @@ import { GetFilterReview } from '~/shared/types-trpc/review.type-trpc';
 import { api } from '~/trpc/react';
 export default function RatingStatistics({ productId }: { productId: string }) {
   const { data: reviews = [] } = api.Review.getFilter.useQuery({ s: productId });
-  console.log('productId', reviews);
-
   let ratingCountsDefault = [0, 0, 0, 0, 0];
   let ratings: number[] =
     reviews?.reduce((acc: number[], item: GetFilterReview[number]) => {

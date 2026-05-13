@@ -1,5 +1,4 @@
-// components/common/loading-skeleton.tsx
-import { Box, Skeleton } from '@mantine/core';
+import { Box, Skeleton, Table, TableTbody, TableTd, TableTr } from '@mantine/core';
 import clsx from 'clsx';
 
 type LoadingSkeletonVariant = 'page' | 'card' | 'table' | 'list' | 'detail' | 'form' | 'custom';
@@ -7,40 +6,23 @@ type LoadingSkeletonVariant = 'page' | 'card' | 'table' | 'list' | 'detail' | 'f
 interface LoadingSkeletonProps {
   variant?: LoadingSkeletonVariant;
 
-  /**
-   * Dùng cho custom variant
-   */
   rows?: number;
 
-  /**
-   * className wrapper ngoài
-   */
+  cols?: number;
+
   className?: string;
 
-  /**
-   * Hiển thị avatar / image
-   */
   withAvatar?: boolean;
 
-  /**
-   * Hiển thị header
-   */
   withHeader?: boolean;
 
-  /**
-   * Custom content
-   */
   children?: React.ReactNode;
 }
 
-/**
- * Common reusable loading skeleton
- *
- * Mantine v7 + TailwindCSS
- */
 export function LoadingSkeleton({
   variant = 'page',
   rows = 4,
+  cols = 4,
   className,
   withAvatar = false,
   withHeader = true,
@@ -52,7 +34,7 @@ export function LoadingSkeleton({
 
   if (variant === 'card') {
     return (
-      <div className={clsx('rounded-2xl border border-gray-200 bg-white p-4 shadow-sm', 'space-y-4', className)}>
+      <Box className={clsx('rounded-2xl border border-gray-200 bg-white p-4 shadow-sm', 'space-y-4', className)}>
         <Skeleton h={180} radius='lg' />
 
         <Box className='space-y-2'>
@@ -65,29 +47,25 @@ export function LoadingSkeleton({
           <Skeleton h={36} w={120} radius='xl' />
           <Skeleton h={36} w={80} radius='xl' />
         </Box>
-      </div>
+      </Box>
     );
   }
 
   if (variant === 'table') {
     return (
-      <div className={clsx('overflow-hidden rounded-2xl border border-gray-200 bg-white', className)}>
-        {/* header */}
-        <Box className='grid grid-cols-4 gap-4 border-b p-4'>
-          {Array.from({ length: 4 }).map((_, i) => (
-            <Skeleton key={i} h={20} radius='md' />
+      <Table>
+        <TableTbody>
+          {Array.from({ length: rows }).map((_, iTr) => (
+            <TableTr key={'tr' + iTr}>
+              {Array.from({ length: cols }).map((_, iTd) => (
+                <TableTd key={'td' + iTd}>
+                  <Skeleton h={14} w='90%' radius='md' />
+                </TableTd>
+              ))}
+            </TableTr>
           ))}
-        </Box>
-
-        {/* rows */}
-        {Array.from({ length: rows }).map((_, row) => (
-          <div key={row} className='grid grid-cols-4 gap-4 border-b p-4 last:border-none'>
-            {Array.from({ length: 4 }).map((_, col) => (
-              <Skeleton key={col} h={18} radius='md' />
-            ))}
-          </div>
-        ))}
-      </div>
+        </TableTbody>
+      </Table>
     );
   }
 
@@ -95,14 +73,14 @@ export function LoadingSkeleton({
     return (
       <Box className={clsx('space-y-4', className)}>
         {Array.from({ length: rows }).map((_, i) => (
-          <div key={i} className='flex items-center gap-4 rounded-xl border border-gray-200 bg-white p-4'>
+          <Box key={i} className='flex items-center gap-4 rounded-xl border border-gray-200 bg-white p-4'>
             {withAvatar && <Skeleton circle h={48} w={48} />}
 
             <Box className='flex-1 space-y-2'>
               <Skeleton h={18} w='40%' radius='md' />
               <Skeleton h={14} w='90%' radius='md' />
             </Box>
-          </div>
+          </Box>
         ))}
       </Box>
     );
@@ -131,7 +109,7 @@ export function LoadingSkeleton({
 
   if (variant === 'form') {
     return (
-      <div className={clsx('rounded-2xl border border-gray-200 bg-white p-6', 'space-y-6', className)}>
+      <Box className={clsx('rounded-2xl border border-gray-200 bg-white p-6', 'space-y-6', className)}>
         {withHeader && (
           <Box className='space-y-2'>
             <Skeleton h={28} w='40%' radius='md' />
@@ -150,13 +128,10 @@ export function LoadingSkeleton({
           <Skeleton h={40} w={100} radius='xl' />
           <Skeleton h={40} w={140} radius='xl' />
         </Box>
-      </div>
+      </Box>
     );
   }
 
-  /**
-   * default page skeleton
-   */
   return (
     <Box className={clsx('space-y-6', className)}>
       {withHeader && (

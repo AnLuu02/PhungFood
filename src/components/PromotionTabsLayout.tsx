@@ -102,7 +102,7 @@ export function PromotionTabLayout({ userId }: { userId: string }) {
       <Divider my='sm' />
       <Tabs.Panel value={activeTab || 'all'}>
         {isLoading ? (
-          <LoadingSkeleton variant='table' />
+          <LoadingSkeleton variant='detail' />
         ) : displayedPromotions?.length > 0 ? (
           <Grid mt='md'>
             {displayedPromotions.map((promo: any) => (

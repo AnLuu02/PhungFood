@@ -52,7 +52,7 @@ export default function CategoryClientManagementPage({
         if (item.isActive) {
           acc.activeCate += 1;
         }
-        item.subCategory?.forEach((subCategory: any) => {
+        item.subCategory?.forEach((subCategory: GetAllCategory[number]['subCategory'][number]) => {
           if (subCategory.isActive) {
             acc.activeSubCate += 1;
           }
@@ -126,8 +126,8 @@ export default function CategoryClientManagementPage({
       <Tabs
         variant='pills'
         value={activeTab}
-        onChange={(value: any) => {
-          setActiveTab(value);
+        onChange={value => {
+          setActiveTab(value as any);
           router.push(`/admin/category`, { scroll: false });
         }}
         styles={{
@@ -170,7 +170,7 @@ export default function CategoryClientManagementPage({
                       { value: 'all', label: 'Tất cả' },
                       { value: 'active', label: 'Hoạt động' },
                       { value: 'inactive', label: 'Tạm khóa' },
-                      ...allData?.map((item: any) => {
+                      ...allData?.map((item: GetAllCategory[number]) => {
                         return {
                           label: item.name,
                           value: item.tag
